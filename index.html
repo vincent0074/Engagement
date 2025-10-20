@@ -1,85 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>X Engagement Hub</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EngageHub</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #0f1419;
-      color: white;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: #0d1117;
+      color: #fff;
+      text-align: center;
+      padding: 40px;
     }
     h1 {
-      margin-top: 30px;
-      color: #1d9bf0;
+      color: #1da1f2;
     }
     form {
-      margin: 20px;
-      display: flex;
-      gap: 10px;
+      margin: 20px 0;
     }
     input {
       padding: 10px;
-      width: 300px;
-      border-radius: 5px;
+      width: 60%;
       border: none;
-      outline: none;
+      border-radius: 4px;
     }
     button {
       padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background: #1d9bf0;
+      margin-left: 10px;
+      background: #1da1f2;
       color: white;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
     }
     button:hover {
-      background: #198cd8;
-    }
-    .list {
-      width: 90%;
-      max-width: 600px;
-      margin-top: 20px;
+      background: #0d8ddb;
     }
     .user-card {
+      background: #161b22;
+      padding: 12px;
+      margin: 8px auto;
+      border-radius: 6px;
+      width: 90%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #161b22;
-      border: 1px solid #1d9bf0;
-      padding: 10px 15px;
-      border-radius: 8px;
-      margin: 10px 0;
     }
-    a {
-      color: #1d9bf0;
+    .user-card a {
+      color: #1da1f2;
       text-decoration: none;
       font-weight: bold;
     }
     .count {
-      margin: 15px;
-      font-size: 16px;
-      color: #aaa;
+      margin-top: 20px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h1>X Engagement Hub</h1>
+  <h1>EngageHub</h1>
+  <p>Drop your X link below 👇 and keep track of your engagement list</p>
+
   <form id="linkForm">
-    <input type="url" id="xLink" placeholder="Enter your X profile link" required />
-    <button type="submit">Add</button>
+    <input type="url" id="xLink" placeholder="Paste your X profile or post link" required>
+    <button type="submit">Add Link</button>
   </form>
 
-  <div class="count">Total Profiles: <span id="count">0</span></div>
+  <div id="linkList"></div>
 
-  <div class="list" id="linkList"></div>
+  <div class="count">
+    Total Links: <span id="count">0</span>
+  </div>
 
   <script>
     const form = document.getElementById("linkForm");
@@ -87,7 +78,11 @@
     const linkList = document.getElementById("linkList");
     const countDisplay = document.getElementById("count");
 
-    let links = [];
+    // Load saved links from localStorage
+    let links = JSON.parse(localStorage.getItem("xLinks")) || [];
+
+    // Render saved links when page loads
+    renderLinks();
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -95,6 +90,7 @@
 
       if (link && !links.includes(link)) {
         links.push(link);
+        localStorage.setItem("xLinks", JSON.stringify(links)); // Save to local storage
         renderLinks();
         linkInput.value = "";
       }
