@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>X Engagement Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f1419;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 30px;
+      color: #1d9bf0;
+    }
+    form {
+      margin: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #1d9bf0;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #198cd8;
+    }
+    .list {
+      width: 90%;
+      max-width: 600px;
+      margin-top: 20px;
+    }
+    .user-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #161b22;
+      border: 1px solid #1d9bf0;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    a {
+      color: #1d9bf0;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .count {
+      margin: 15px;
+      font-size: 16px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>X Engagement Hub</h1>
+  <form id="linkForm">
+    <input type="url" id="xLink" placeholder="Enter your X profile link" required />
+    <button type="submit">Add</button>
+  </form>
+
+  <div class="count">Total Profiles: <span id="count">0</span></div>
+
+  <div class="list" id="linkList"></div>
+
+  <script>
+    const form = document.getElementById("linkForm");
+    const linkInput = document.getElementById("xLink");
+    const linkList = document.getElementById("linkList");
+    const countDisplay = document.getElementById("count");
+
+    let links = [];
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const link = linkInput.value.trim();
+
+      if (link && !links.includes(link)) {
+        links.push(link);
+        renderLinks();
+        linkInput.value = "";
+      }
+    });
+
+    function renderLinks() {
+      linkList.innerHTML = "";
+      links.forEach((link) => {
+        const div = document.createElement("div");
+        div.className = "user-card";
+        div.innerHTML = `
+          <span>${link}</span>
+          <a href="${link}" target="_blank">Follow</a>
+        `;
+        linkList.appendChild(div);
+      });
+      countDisplay.textContent = links.length;
+    }
+  </script>
+</body>
+</html>
