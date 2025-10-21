@@ -49,7 +49,7 @@
 </head>
 <body>
   <h1>X Engagement Hub</h1>
-  <p>Drop your X profile link 👇 — everyone will see it live.</p>
+  <p>Drop your X profile link 👇 — it’ll show instantly for everyone.</p>
 
   <form id="linkForm">
     <input type="url" id="xLink" placeholder="Paste your X profile link" required />
@@ -66,10 +66,10 @@
       getFirestore,
       collection,
       addDoc,
-      getDocs
+      onSnapshot
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // 👇 Replace the placeholders with your Firebase project settings
+    // 🚨 Replace this config with your real Firebase credentials
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY_HERE",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -87,6 +87,7 @@
     const linkList = document.getElementById("linkList");
     const countDisplay = document.getElementById("count");
 
+    // Extract username from X link
     async function extractUsername(link) {
       try {
         const url = new URL(link);
@@ -98,22 +99,26 @@
       return null;
     }
 
-    async function loadLinks() {
-      linkList.innerHTML = "";
-      const snapshot = await getDocs(collection(db, "links"));
-      const links = snapshot.docs.map(doc => doc.data());
-      links.forEach(acc => {
-        const div = document.createElement("div");
-        div.className = "user-card";
-        div.innerHTML = `
-          <span>${acc.username}</span>
-          <a href="${acc.link}" target="_blank">View</a>
-        `;
-        linkList.appendChild(div);
+    // Real-time listener
+    function loadLinks() {
+      const q = collection(db, "links");
+      onSnapshot(q, (snapshot) => {
+        linkList.innerHTML = "";
+        const links = snapshot.docs.map(doc => doc.data());
+        links.forEach(acc => {
+          const div = document.createElement("div");
+          div.className = "user-card";
+          div.innerHTML = `
+            <span>${acc.username}</span>
+            <a href="${acc.link}" target="_blank">View</a>
+          `;
+          linkList.appendChild(div);
+        });
+        countDisplay.textContent = links.length;
       });
-      countDisplay.textContent = links.length;
     }
 
+    // Handle form submit
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const link = linkInput.value.trim();
@@ -125,7 +130,6 @@
       try {
         await addDoc(collection(db, "links"), { link, username });
         linkInput.value = "";
-        loadLinks();
       } catch (err) {
         console.error("Error adding link:", err);
         alert("Could not save. Check your Firestore rules.");
