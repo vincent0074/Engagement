@@ -20,13 +20,13 @@
     }
     input {
       padding: 10px;
-      width: 45%;
+      width: 60%;
       border: none;
       border-radius: 4px;
-      margin: 5px;
     }
     button {
       padding: 10px 20px;
+      margin-left: 10px;
       background: #1da1f2;
       color: white;
       border: none;
@@ -39,27 +39,17 @@
     .user-card {
       background: #161b22;
       padding: 12px;
-      margin: 10px auto;
-      border-radius: 8px;
+      margin: 8px auto;
+      border-radius: 6px;
       width: 90%;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 15px;
     }
-    .user-card img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 2px solid #1da1f2;
-    }
-    .username {
-      font-size: 18px;
-      font-weight: bold;
-      color: #fff;
-    }
-    .username a {
+    .user-card a {
       color: #1da1f2;
       text-decoration: none;
+      font-weight: bold;
     }
     .count {
       margin-top: 20px;
@@ -69,60 +59,70 @@
 </head>
 <body>
   <h1>X Engagement Hub</h1>
-  <p>Join the hub — drop your X username and profile image link 👇</p>
+  <p>Drop your X link below 👇 — we’ll auto-pull your username</p>
 
-  <form id="userForm">
-    <input type="text" id="username" placeholder="@username" required>
-    <input type="url" id="profilePic" placeholder="Profile image URL" required>
-    <button type="submit">Add User</button>
+  <form id="linkForm">
+    <input type="url" id="xLink" placeholder="Paste your X profile link" required>
+    <button type="submit">Add</button>
   </form>
 
-  <div id="userList"></div>
+  <div id="linkList"></div>
 
   <div class="count">
-    Total Members: <span id="count">0</span>
+    Total Accounts: <span id="count">0</span>
   </div>
 
   <script>
-    const form = document.getElementById("userForm");
-    const usernameInput = document.getElementById("username");
-    const profilePicInput = document.getElementById("profilePic");
-    const userList = document.getElementById("userList");
+    const form = document.getElementById("linkForm");
+    const linkInput = document.getElementById("xLink");
+    const linkList = document.getElementById("linkList");
     const countDisplay = document.getElementById("count");
 
-    let users = JSON.parse(localStorage.getItem("xUsers")) || [];
+    let accounts = JSON.parse(localStorage.getItem("xAccounts")) || [];
 
-    renderUsers();
+    renderAccounts();
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const username = usernameInput.value.trim();
-      const profilePic = profilePicInput.value.trim();
-
-      if (username && profilePic && !users.find(u => u.username === username)) {
-        const user = { username, profilePic };
-        users.push(user);
-        localStorage.setItem("xUsers", JSON.stringify(users));
-        renderUsers();
-        usernameInput.value = "";
-        profilePicInput.value = "";
+      const link = linkInput.value.trim();
+      if (link && !accounts.find(acc => acc.link === link)) {
+        const username = extractUsername(link);
+        if (username) {
+          accounts.push({ link, username });
+          localStorage.setItem("xAccounts", JSON.stringify(accounts));
+          renderAccounts();
+          linkInput.value = "";
+        } else {
+          alert("Invalid X link. Please use a proper X profile link (like https://x.com/username)");
+        }
       }
     });
 
-    function renderUsers() {
-      userList.innerHTML = "";
-      users.forEach(user => {
+    function extractUsername(link) {
+      try {
+        const url = new URL(link);
+        if (url.hostname.includes("x.com") || url.hostname.includes("twitter.com")) {
+          const parts = url.pathname.split("/").filter(Boolean);
+          return parts[0] ? "@" + parts[0] : null;
+        }
+      } catch (err) {
+        return null;
+      }
+      return null;
+    }
+
+    function renderAccounts() {
+      linkList.innerHTML = "";
+      accounts.forEach(acc => {
         const div = document.createElement("div");
         div.className = "user-card";
         div.innerHTML = `
-          <img src="${user.profilePic}" alt="${user.username}">
-          <div class="username">
-            <a href="https://x.com/${user.username.replace('@', '')}" target="_blank">${user.username}</a>
-          </div>
+          <span>${acc.username}</span>
+          <a href="${acc.link}" target="_blank">View</a>
         `;
-        userList.appendChild(div);
+        linkList.appendChild(div);
       });
-      countDisplay.textContent = users.length;
+      countDisplay.textContent = accounts.length;
     }
   </script>
 </body>
