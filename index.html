@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>X Engagement Hub</title>
   <style>
     body {
@@ -12,12 +12,8 @@
       text-align: center;
       padding: 40px;
     }
-    h1 {
-      color: #1da1f2;
-    }
-    form {
-      margin: 20px 0;
-    }
+    h1 { color: #1da1f2; }
+    form { margin: 20px 0; }
     input {
       padding: 10px;
       width: 60%;
@@ -32,9 +28,6 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-    }
-    button:hover {
-      background: #0d8ddb;
     }
     .user-card {
       background: #161b22;
@@ -51,69 +44,63 @@
       text-decoration: none;
       font-weight: bold;
     }
-    .count {
-      margin-top: 20px;
-      font-size: 18px;
-    }
+    .count { margin-top: 20px; font-size: 18px; }
   </style>
 </head>
 <body>
   <h1>X Engagement Hub</h1>
-  <p>Drop your X link below 👇 — we’ll auto-pull your username</p>
+  <p>Drop your X profile link 👇 — everyone will see it live.</p>
 
   <form id="linkForm">
-    <input type="url" id="xLink" placeholder="Paste your X profile link" required>
+    <input type="url" id="xLink" placeholder="Paste your X profile link" required />
     <button type="submit">Add</button>
   </form>
 
   <div id="linkList"></div>
+  <div class="count">Total Accounts: <span id="count">0</span></div>
 
-  <div class="count">
-    Total Accounts: <span id="count">0</span>
-  </div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  <script>
+    // TODO: replace these placeholders with your own project credentials
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID"
+    };
+
+    // Initialize Firebase + Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const form = document.getElementById("linkForm");
     const linkInput = document.getElementById("xLink");
     const linkList = document.getElementById("linkList");
     const countDisplay = document.getElementById("count");
 
-    let accounts = JSON.parse(localStorage.getItem("xAccounts")) || [];
-
-    renderAccounts();
-
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const link = linkInput.value.trim();
-      if (link && !accounts.find(acc => acc.link === link)) {
-        const username = extractUsername(link);
-        if (username) {
-          accounts.push({ link, username });
-          localStorage.setItem("xAccounts", JSON.stringify(accounts));
-          renderAccounts();
-          linkInput.value = "";
-        } else {
-          alert("Invalid X link. Please use a proper X profile link (like https://x.com/username)");
-        }
-      }
-    });
-
-    function extractUsername(link) {
+    async function extractUsername(link) {
       try {
         const url = new URL(link);
         if (url.hostname.includes("x.com") || url.hostname.includes("twitter.com")) {
           const parts = url.pathname.split("/").filter(Boolean);
           return parts[0] ? "@" + parts[0] : null;
         }
-      } catch (err) {
-        return null;
-      }
+      } catch (e) { return null; }
       return null;
     }
 
-    function renderAccounts() {
+    async function loadLinks() {
       linkList.innerHTML = "";
-      accounts.forEach(acc => {
+      const snapshot = await getDocs(collection(db, "links"));
+      const links = snapshot.docs.map(doc => doc.data());
+      links.forEach(acc => {
         const div = document.createElement("div");
         div.className = "user-card";
         div.innerHTML = `
@@ -122,8 +109,23 @@
         `;
         linkList.appendChild(div);
       });
-      countDisplay.textContent = accounts.length;
+      countDisplay.textContent = links.length;
     }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const link = linkInput.value.trim();
+      const username = await extractUsername(link);
+      if (!username) {
+        alert("Invalid X link");
+        return;
+      }
+      await addDoc(collection(db, "links"), { link, username });
+      linkInput.value = "";
+      loadLinks();
+    });
+
+    loadLinks();
   </script>
 </body>
 </html>
