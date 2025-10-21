@@ -59,7 +59,7 @@
   <div id="linkList"></div>
   <div class="count">Total Accounts: <span id="count">0</span></div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase + Firestore -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
@@ -69,14 +69,16 @@
       getDocs
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // TODO: replace these placeholders with your own project credentials
+    // 👇 Replace the placeholders with your Firebase project settings
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
+      apiKey: "YOUR_API_KEY_HERE",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID"
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
-    // Initialize Firebase + Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -120,9 +122,14 @@
         alert("Invalid X link");
         return;
       }
-      await addDoc(collection(db, "links"), { link, username });
-      linkInput.value = "";
-      loadLinks();
+      try {
+        await addDoc(collection(db, "links"), { link, username });
+        linkInput.value = "";
+        loadLinks();
+      } catch (err) {
+        console.error("Error adding link:", err);
+        alert("Could not save. Check your Firestore rules.");
+      }
     });
 
     loadLinks();
